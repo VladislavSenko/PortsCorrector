@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31727.386
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortSearchMatchModule", "PortSearchMatchModule\PortSearchMatchModule.csproj", "{C3AFE054-933A-4168-824D-06C28ADB2D3D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiMongo", "WebApiMongo\WebApiMongo.csproj", "{474880ED-BF78-4F71-B298-252A6E91F794}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortsProcessor", "PortsProcessor\PortsProcessor.csproj", "{19D2411A-C460-4E1C-B085-67BFBDECE424}"
@@ -15,10 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C3AFE054-933A-4168-824D-06C28ADB2D3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3AFE054-933A-4168-824D-06C28ADB2D3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3AFE054-933A-4168-824D-06C28ADB2D3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3AFE054-933A-4168-824D-06C28ADB2D3D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{474880ED-BF78-4F71-B298-252A6E91F794}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{474880ED-BF78-4F71-B298-252A6E91F794}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{474880ED-BF78-4F71-B298-252A6E91F794}.Release|Any CPU.ActiveCfg = Release|Any CPU

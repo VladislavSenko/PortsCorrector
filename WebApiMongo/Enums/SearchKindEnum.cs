@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PortsProcessor.Enums
+namespace WebApiMongo.Enums
 {
-    public enum SearchMatchKindEnum
+    public enum SearchKindEnum
     {
         PortCode = 1,
         PortName,

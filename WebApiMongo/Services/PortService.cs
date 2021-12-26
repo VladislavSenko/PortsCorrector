@@ -7,8 +7,10 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using WebApiMongo.Entities;
+using WebApiMongo.Enums;
 using WebApiMongo.Models;
 using WebApiMongo.Settings;
+using WebApiMongo.ViewModel;
 
 namespace WebApiMongo.Services
 {
@@ -46,17 +48,38 @@ namespace WebApiMongo.Services
         public async Task RemoveAsync(string id) =>
             await _portsCollection.DeleteOneAsync(x => x.Id == id);
         
-        public async Task<List<Port>> FindMatch(string portNameOrCode)
+        public async Task<List<TheBestMatchModel>> FindMatch(InputPortViewModel inputPortViewModel)
         {
+            var searchKind = SearchKindEnum.PortCodeAndName;
+            var theBestMatches = new List<TheBestMatchModel>();
+
+            if (string.IsNullOrWhiteSpace(inputPortViewModel.PortCode))
+                searchKind = SearchKindEnum.PortName;
+            else if (string.IsNullOrWhiteSpace(inputPortViewModel.PortName))
+                searchKind = SearchKindEnum.PortCode;
+
             var ports = await GetAsync();
-            var portMatchResults = _matcherProvider.GetMatchCoefficient(portNameOrCode, ports);
-            var theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults);
 
-            var foundPorts = ports.Where(p => theBestMatches.Select(m => m.PortId).Contains(p.Id))
-                .Reverse()
-                .ToList();
+            var port = ports.FirstOrDefault(p => p.PortCode == inputPortViewModel.PortCode &&
+                                                 p.PortName.Contains(inputPortViewModel.PortName));
+            if (port != null)
+            {
+                theBestMatches.Add(new TheBestMatchModel()
+                {
+                    PortName = port.PortName.FirstOrDefault(p => p == inputPortViewModel.PortName),
+                    PortCodeId =  port.Id,
+                    PortCodeMatchWeight =  1,
+                    PortNameMatchWeight =  1,
+                    SearchKind = SearchKindEnum.PortCodeAndName
+                });
 
-            return foundPorts;
+                return theBestMatches;
+            }
+
+            var portMatchResults = _matcherProvider.GetMatchCoefficient(inputPortViewModel, ports);
+            theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, searchKind);
+
+            return theBestMatches;
         }
     }
 }

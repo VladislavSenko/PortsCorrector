@@ -6,6 +6,7 @@ using WebApiMongo.Enums;
 using WebApiMongo.Helpers;
 using WebApiMongo.Models;
 using WebApiMongo.Settings;
+using WebApiMongo.ViewModel;
 
 namespace WebApiMongo.Services
 {
@@ -15,9 +16,10 @@ namespace WebApiMongo.Services
         {
         }
 
-        public List<MatchResultModel> GetMatchCoefficient(string inputWord, List<Port> ports)
+        public List<MatchResultModel> GetMatchCoefficient(InputPortViewModel inputPort, List<Port> ports)
         {
-            var matcher = new MatcherHelper(MethodsEnum.SorensenDice, inputWord);
+            var codeMatcher = new MatcherHelper(MethodsEnum.SorensenDice, inputPort.PortCode);
+            var nameMatcher = new MatcherHelper(MethodsEnum.SorensenDice, inputPort.PortName);
 
             var matchResults = new List<MatchResultModel>();
 
@@ -27,12 +29,13 @@ namespace WebApiMongo.Services
 
                 matchResult.Id = port.Id;
                 matchResult.PortCode = port.PortCode;
-                matchResult.PortCodeMatchCoefficient = matcher.GetCoefficient(port.PortCode);
+                matchResult.PortCodeMatchCoefficient = codeMatcher.GetCoefficient(port.PortCode);
 
-                matchResult.PortNameMatchResults = port.PortName.Select(p => new PortNameMatchResult
+                matchResult.PortNameMatchResults = port.PortName.Select((p,i) => new PortNameMatchResult
                 {
+                    PortNameIndex = i,
                     PortName = p,
-                    PortNameMatchCoefficient =  matcher.GetCoefficient(p)
+                    PortNameMatchCoefficient =  nameMatcher.GetCoefficient(p)
                 }).OrderByDescending(p => p.PortNameMatchCoefficient)
                     .ToList();
                
@@ -42,65 +45,53 @@ namespace WebApiMongo.Services
             return matchResults;
         }
 
-        public List<TheBestMatchModel> GetTheBestMatch(List<MatchResultModel> matchResults)
+        public List<TheBestMatchModel> GetTheBestMatch(List<MatchResultModel> matchResults, SearchKindEnum searchKind)
         {
             var howMuchMatchesReturn = AppSettings.ReturnMatches;
-
-            var matchResultOrderByCodeCoeff = matchResults.OrderByDescending(m => m.PortCodeMatchCoefficient)
-                .Select(r => new TheBestMatchModel()
-                {
-                    PortId = r.Id,
-                    Value =  r.PortCode,
-                    isPortCode = true,
-                    MatchScore =  r.PortCodeMatchCoefficient
-                })
-                .Take(howMuchMatchesReturn)
-                .ToList();
-
-            var matchResultOrderByNameCoeff = matchResults
-                .OrderByDescending(m => m.PortNameMatchResults.Max(p => p.PortNameMatchCoefficient))
-                .Select(r => new TheBestMatchModel()
-                {
-                    PortId = r.Id,
-                    Value = r.PortNameMatchResults.OrderByDescending(s => s.PortNameMatchCoefficient).First().PortName,
-                    isPortCode = false,
-                    MatchScore = r.PortNameMatchResults.Max(p => p.PortNameMatchCoefficient)
-                })
-                .Take(howMuchMatchesReturn)
-                .ToList();
-
             var theBestMatchModels = new List<TheBestMatchModel>();
-            theBestMatchModels.AddRange(matchResultOrderByCodeCoeff);
-            theBestMatchModels.AddRange(matchResultOrderByNameCoeff);
 
-            // decimal theBestCoefficient = 0;
+            foreach (var matchResult in matchResults)
+            {
+                foreach (var portNameMatchResult in matchResult.PortNameMatchResults)
+                {
+                    var theBestMatch = new TheBestMatchModel()
+                    {
+                        PortName = portNameMatchResult.PortName,
+                        PortCode = matchResult.PortCode,
+                        PortCodeId = matchResult.Id,
+                        PortNameMatchWeight = portNameMatchResult.PortNameMatchCoefficient,
+                        PortCodeMatchWeight = matchResult.PortCodeMatchCoefficient,
+                        SearchKind = searchKind
+                    };
+                    theBestMatchModels.Add(theBestMatch);
+                }
+            }
+            
+            var orderedMatchResult = new List<TheBestMatchModel>();
 
-            // var theBestMatchModel = new TheBestMatchModel();
-            // foreach (var matchResult in matchResults)
-            // {
-            //     if (matchResult.PortCodeMatchCoefficient > theBestCoefficient)
-            //     {
-            //         theBestMatchModel.PortId = matchResult.Id;
-            //         theBestMatchModel.Value = matchResult.PortCode;
-            //         theBestMatchModel.isPortCode = true;
-            //
-            //         theBestCoefficient = matchResult.PortCodeMatchCoefficient;
-            //     }
-            //     foreach (var portNameMatchResult in matchResult.PortNameMatchResults)
-            //     {
-            //         if (portNameMatchResult.PortNameMatchCoefficient > theBestCoefficient)
-            //         {
-            //             theBestMatchModel.PortId = matchResult.Id;
-            //             theBestMatchModel.Value = portNameMatchResult.PortName;
-            //             theBestMatchModel.isPortCode = false;
-            //
-            //             theBestCoefficient = portNameMatchResult.PortNameMatchCoefficient;
-            //         }
-            //     }
-            // }
+            switch (searchKind)
+            {
+                case SearchKindEnum.PortCodeAndName:
+                    orderedMatchResult = theBestMatchModels
+                        .OrderByDescending(m => m.PortCodeMatchWeight + m.PortNameMatchWeight)
+                        .Take(howMuchMatchesReturn)
+                        .ToList();
+                    break;
+                case SearchKindEnum.PortCode:
+                    orderedMatchResult = theBestMatchModels
+                        .OrderByDescending(m => m.PortCodeMatchWeight)
+                        .Take(howMuchMatchesReturn)
+                        .ToList();
+                    break;
+                case SearchKindEnum.PortName:
+                    orderedMatchResult = theBestMatchModels
+                        .OrderByDescending(m => m.PortNameMatchWeight)
+                        .Take(howMuchMatchesReturn)
+                        .ToList();
+                    break;
+            }
 
-            return theBestMatchModels.OrderByDescending(m => m.isPortCode)
-                .ToList();
+            return orderedMatchResult;
         }
     }
 }

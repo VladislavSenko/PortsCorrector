@@ -56,7 +56,7 @@ namespace PortsProcessor.Services
 
                     if (string.IsNullOrWhiteSpace(inputPort.PortCode))
                     {
-                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchMatchKindEnum.PortName);
+                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchKindEnum.PortName);
 
                         foundPorts = theBestMatches.Select(p => new ProcessedPort()
                         {
@@ -68,7 +68,7 @@ namespace PortsProcessor.Services
                     }
                     else if (string.IsNullOrWhiteSpace(inputPort.PortName))
                     {
-                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchMatchKindEnum.PortCode);
+                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchKindEnum.PortCode);
 
                         foundPorts = theBestMatches.Select(p => new ProcessedPort()
                         {
@@ -80,7 +80,7 @@ namespace PortsProcessor.Services
                     }
                     else
                     {
-                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchMatchKindEnum.PortCodeAndName);
+                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchKindEnum.PortCodeAndName);
 
                         foundPorts = theBestMatches.Select(p => new ProcessedPort()
                         {

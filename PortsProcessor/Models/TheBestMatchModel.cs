@@ -10,7 +10,7 @@ namespace PortsProcessor.Models
     {
         public int PortCodeId { get; set; }
         public int PortNameId { get; set; }
-        public SearchMatchKindEnum SearchMatchKind { get; set; }
+        public SearchKindEnum SearchKind { get; set; }
         public decimal PortCodeMatchWeight { get; set; }
         public decimal PortNameMatchWeight { get; set; }
     }

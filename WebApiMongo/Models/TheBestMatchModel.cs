@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebApiMongo.Enums;
 
 namespace WebApiMongo.Models
 {
     public class TheBestMatchModel
     {
-        public string Value { get; set; }
-        public string PortId { get; set; }
-        public bool isPortCode { get; set; }
-        public decimal MatchScore { get; set; }
+        public string PortCodeId { get; set; }
+        public string PortCode { get; set; }
+        public string PortName { get; set; }
+        public SearchKindEnum SearchKind { get; set; }
+        public decimal PortCodeMatchWeight { get; set; }
+        public decimal PortNameMatchWeight { get; set; }
     }
 }

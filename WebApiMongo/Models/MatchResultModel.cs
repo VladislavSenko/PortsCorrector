@@ -22,6 +22,7 @@ namespace WebApiMongo.Models
 
     public class PortNameMatchResult
     {
+        public int PortNameIndex { get; set; }
         public string PortName { get; set; }
         public decimal PortNameMatchCoefficient { get; set; }
     }

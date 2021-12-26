@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApiMongo.Entities;
 using WebApiMongo.Models;
 using WebApiMongo.Services;
+using WebApiMongo.ViewModel;
 
 namespace WebApiMongo.Controllers
 {
@@ -70,10 +71,10 @@ namespace WebApiMongo.Controllers
             return new NoContentResult();
         }
 
-        [HttpGet("findMatch")]
-        public async Task<ActionResult<List<Port>>> FindMatch(string name)
+        [HttpPost("findMatch")]
+        public async Task<ActionResult<List<TheBestMatchModel>>> FindMatch(InputPortViewModel inputPortViewModel)
         {
-            var ports = await _portsService.FindMatch(name);
+            var ports = await _portsService.FindMatch(inputPortViewModel);
 
             return ports;
         }

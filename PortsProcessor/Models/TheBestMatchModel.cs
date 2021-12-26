@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PortsProcessor.Enums;
 
 namespace PortsProcessor.Models
 {
     public class TheBestMatchModel
     {
-        public string Value { get; set; }
         public int PortCodeId { get; set; }
-        public bool isPortCode { get; set; }
-        public decimal MatchScore { get; set; }
+        public int PortNameId { get; set; }
+        public SearchMatchKindEnum SearchMatchKind { get; set; }
+        public decimal PortCodeMatchWeight { get; set; }
+        public decimal PortNameMatchWeight { get; set; }
     }
 }

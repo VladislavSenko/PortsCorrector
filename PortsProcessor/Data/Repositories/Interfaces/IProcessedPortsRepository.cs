@@ -6,6 +6,6 @@ namespace PortsProcessor.Data.Repositories.Interfaces
 {
     public interface IProcessedPortsRepository
     {
-        public Task InsertRange(List<ProcessedPort> processedPorts);
+        public Task InsertRangeAsync(List<ProcessedPort> processedPorts);
     }      
 }

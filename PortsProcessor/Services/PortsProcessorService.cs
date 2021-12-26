@@ -1,6 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using PortsProcessor.Data.Entities;
 using PortsProcessor.Data.Repositories.Interfaces;
+using PortsProcessor.Enums;
+using PortsProcessor.Models;
 using PortsProcessor.Providers;
 
 namespace PortsProcessor.Services
@@ -29,34 +33,71 @@ namespace PortsProcessor.Services
 
             foreach (var inputPort in inputPorts)
             {
-                if (string.IsNullOrWhiteSpace(inputPort.PortCode))
-                {
+                var foundPorts = new List<ProcessedPort>();
 
-                }
-                else if (string.IsNullOrWhiteSpace(inputPort.PortName))
-                {
+                var portCode = await _portCodesRepository.GetPortCodeByCode(inputPort.PortCode);
+                var portName = portCode?.PortNames.FirstOrDefault(p => p.Name == inputPort.PortName);
 
+                if (portCode != null && portCode != null)
+                {
+                    foundPorts.Add(new ProcessedPort()
+                    {
+                        InputPortId = inputPort.Id,
+                        PortCodeId = portCode.Id,
+                        PortNameId = portName.Id,
+                        MatchWeight = 2
+                    });
                 }
                 else
                 {
                     var portMatchResults = _matcherProvider.GetMatchCoefficient(inputPort, portCodes);
-                    var theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults);
-                    
-                    var foundPorts = portCodes.Where(p => theBestMatches.Select(m => m.PortCodeId).Contains(p.Id))
-                        .Reverse()
-                        .ToList();
-                    
-                }
-            }
 
-            // var portMatchResults = _matcherProvider.GetMatchCoefficient(portNameOrCode, ports);
-            //     var theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults);
-            //
-            //     var foundPorts = ports.Where(p => theBestMatches.Select(m => m.PortCodeId).Contains(p.PortCodeId))
-            //         .Reverse()
-            //         .ToList();
-            //
-            //     return foundPorts;
+                    var theBestMatches = new List<TheBestMatchModel>();
+
+                    if (string.IsNullOrWhiteSpace(inputPort.PortCode))
+                    {
+                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchMatchKindEnum.PortName);
+
+                        foundPorts = theBestMatches.Select(p => new ProcessedPort()
+                        {
+                            PortNameId = p.PortNameId,
+                            PortCodeId = p.PortCodeId,
+                            InputPortId = inputPort.Id,
+                            MatchWeight = p.PortNameMatchWeight
+                        }).ToList();
+                    }
+                    else if (string.IsNullOrWhiteSpace(inputPort.PortName))
+                    {
+                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchMatchKindEnum.PortCode);
+
+                        foundPorts = theBestMatches.Select(p => new ProcessedPort()
+                        {
+                            PortNameId = p.PortNameId,
+                            PortCodeId = p.PortCodeId,
+                            InputPortId = inputPort.Id,
+                            MatchWeight = p.PortCodeMatchWeight
+                        }).ToList();
+                    }
+                    else
+                    {
+                        theBestMatches = _matcherProvider.GetTheBestMatch(portMatchResults, SearchMatchKindEnum.PortCodeAndName);
+
+                        foundPorts = theBestMatches.Select(p => new ProcessedPort()
+                        {
+                            PortNameId = p.PortNameId,
+                            PortCodeId = p.PortCodeId,
+                            InputPortId = inputPort.Id,
+                            MatchWeight = p.PortCodeMatchWeight + p.PortNameMatchWeight
+                        }).ToList();
+                    }
+
+                }
+
+                await _processedPortsRepository.InsertRangeAsync(foundPorts);
+
+                inputPort.IsProcessed = true;
+                await _inputPortsRepository.UpdateAsync(inputPort);
+            }
         }
     }
 }

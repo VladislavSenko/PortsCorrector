@@ -11,5 +11,6 @@ namespace PortsProcessor.Data.Repositories.Interfaces
     {
         public Task<PortCode> GetPortCodeByIdAsync(int id);
         public Task<List<PortCode>> GetAllCodes();
+        public Task<PortCode> GetPortCodeByCode(string code);
     }
 }

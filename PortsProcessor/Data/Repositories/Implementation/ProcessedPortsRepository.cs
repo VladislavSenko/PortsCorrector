@@ -18,7 +18,7 @@ namespace PortsProcessor.Data.Repositories.Implementation
             _dbContext = portsDbContext;
         }
 
-        public async Task InsertRange(List<ProcessedPort> processedPorts)
+        public async Task InsertRangeAsync(List<ProcessedPort> processedPorts)
         {
             await _dbContext.AddRangeAsync(processedPorts);
             await _dbContext.SaveChangesAsync();

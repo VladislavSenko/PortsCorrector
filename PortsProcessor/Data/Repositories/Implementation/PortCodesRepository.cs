@@ -32,5 +32,13 @@ namespace PortsProcessor.Data.Repositories.Implementation
 
             return portCodes;
         }
+
+        public async Task<PortCode> GetPortCodeByCode(string code)
+        {
+            var portCode = await _portCodes.Include(p => p.PortNames)
+                .FirstOrDefaultAsync(p => p.Code.Equals(code));
+
+            return portCode;
+        }
     }
 }

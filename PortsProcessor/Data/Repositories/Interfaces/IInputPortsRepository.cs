@@ -11,5 +11,6 @@ namespace PortsProcessor.Data.Repositories.Interfaces
     public interface IInputPortsRepository
     {
         public Task<List<InputPort>> GetNoProcessedPortsAsync();
+        public Task UpdateAsync(InputPort inputPort);
     } 
 }

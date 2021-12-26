@@ -6,22 +6,34 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PortsProcessor.Data.Entities;
 using PortsProcessor.Data.Repositories.Interfaces;
+using PortsProcessor.Exceptions;
 
 namespace PortsProcessor.Data.Repositories.Implementation
 {
     class InputPortsRepository : IInputPortsRepository
     {
-        private readonly DbSet<InputPort> _inputPorts;
+        private readonly PortsDbContext _portsDbContext;
 
-        public InputPortsRepository(PortsDbContext dbContext)
+        public InputPortsRepository(PortsDbContext portsDbContext)
         {
-            _inputPorts = dbContext.InputPorts;
+            _portsDbContext = portsDbContext;
         }
 
         public Task<List<InputPort>> GetNoProcessedPortsAsync()
         {
-            var ports = _inputPorts.Where(p => !p.IsProcessed).ToListAsync();
+            var ports = _portsDbContext.InputPorts.Where(p => !p.IsProcessed).ToListAsync();
             return ports;
+        }
+
+        public async Task UpdateAsync(InputPort inputPort)
+        {
+            var port = await _portsDbContext.InputPorts.FirstOrDefaultAsync(p => p.Id == inputPort.Id);
+
+            if(port == null)
+                throw new EntityNotFoundException<PortCode>($"id: {inputPort.Id}");
+
+            _portsDbContext.Update(inputPort);
+            await _portsDbContext.SaveChangesAsync();
         }
     }
 }

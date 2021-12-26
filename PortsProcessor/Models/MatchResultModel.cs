@@ -22,6 +22,7 @@ namespace PortsProcessor.Models
 
     public class PortNameMatchResult
     {
+        public int Id { get; set; }
         public string PortName { get; set; }
         public decimal PortNameMatchCoefficient { get; set; }
     }

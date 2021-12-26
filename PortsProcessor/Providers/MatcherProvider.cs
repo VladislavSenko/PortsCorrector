@@ -31,6 +31,7 @@ namespace PortsProcessor.Providers
 
                 matchResult.PortNameMatchResults = port.PortNames.Select(p => new PortNameMatchResult
                 {
+                    Id = p.Id,
                     PortName = p.Name,
                     PortNameMatchCoefficient =  nameMatcher.GetCoefficient(p.Name)
                 }).OrderByDescending(p => p.PortNameMatchCoefficient)
@@ -42,46 +43,52 @@ namespace PortsProcessor.Providers
             return matchResults;
         }
 
-        public List<TheBestMatchModel> GetTheBestMatch(List<MatchResultModel> matchResults)
+        public List<TheBestMatchModel> GetTheBestMatch(List<MatchResultModel> matchResults, SearchMatchKindEnum searchMatchKind)
         {
             var howMuchMatchesReturn = AppSettings.ReturnMatches;
-
-            var maxMatch = matchResults.Select(m => new
-            {
-                PortCodeId = m.PortCodeId,
-                Score = m.PortCodeMatchCoefficient + m.PortNameMatchResults.Max(p => p.PortNameMatchCoefficient)
-            }).OrderByDescending(s => s.Score).Take(howMuchMatchesReturn).ToList();
-
-            var matchResultOrderByCodeCoeff = matchResults.OrderByDescending(m => m.PortCodeMatchCoefficient)
-                .Select(r => new TheBestMatchModel()
-                {
-                    PortCodeId = r.PortCodeId,
-                    Value =  r.PortCode,
-                    isPortCode = true,
-                    MatchScore =  r.PortCodeMatchCoefficient
-                })
-                .Take(howMuchMatchesReturn)
-                .ToList();
-
-            var matchResultOrderByNameCoeff = matchResults
-                .OrderByDescending(m => m.PortNameMatchResults.Max(p => p.PortNameMatchCoefficient))
-                .Select(r => new TheBestMatchModel()
-                {
-                    PortCodeId = r.PortCodeId,
-                    Value = r.PortNameMatchResults.OrderByDescending(s => s.PortNameMatchCoefficient).First().PortName,
-                    isPortCode = false,
-                    MatchScore = r.PortNameMatchResults.Max(p => p.PortNameMatchCoefficient)
-                })
-                .Take(howMuchMatchesReturn)
-                .ToList();
-
             var theBestMatchModels = new List<TheBestMatchModel>();
-            theBestMatchModels.AddRange(matchResultOrderByCodeCoeff);
-            theBestMatchModels.AddRange(matchResultOrderByNameCoeff);
 
+            foreach (var matchResult in matchResults)
+            {
+                foreach (var portNameMatchResult in matchResult.PortNameMatchResults)
+                {
+                    var theBestMatch = new TheBestMatchModel()
+                    {
+                        PortNameId = portNameMatchResult.Id,
+                        PortCodeId = matchResult.PortCodeId,
+                        PortNameMatchWeight = portNameMatchResult.PortNameMatchCoefficient,
+                        PortCodeMatchWeight = matchResult.PortCodeMatchCoefficient,
+                        SearchMatchKind = searchMatchKind
+                    };
+                    theBestMatchModels.Add(theBestMatch);
+                }
+            }
 
-            return theBestMatchModels.OrderByDescending(m => m.isPortCode)
-                .ToList();
+            var orderedMatchResult = new List<TheBestMatchModel>();
+
+            switch (searchMatchKind)
+            {
+                case SearchMatchKindEnum.PortCodeAndName:
+                    orderedMatchResult = theBestMatchModels
+                        .OrderByDescending(m => m.PortCodeMatchWeight + m.PortNameMatchWeight)
+                        .Take(howMuchMatchesReturn)
+                        .ToList();
+                    break;
+                case SearchMatchKindEnum.PortCode:
+                    orderedMatchResult = theBestMatchModels
+                        .OrderByDescending(m => m.PortCodeMatchWeight)
+                        .Take(howMuchMatchesReturn)
+                        .ToList();
+                    break;
+                case SearchMatchKindEnum.PortName:
+                    orderedMatchResult = theBestMatchModels
+                        .OrderByDescending(m => m.PortNameMatchWeight)
+                        .Take(howMuchMatchesReturn)
+                        .ToList();
+                    break;
+            }
+            
+            return orderedMatchResult;
         }
     }
 }

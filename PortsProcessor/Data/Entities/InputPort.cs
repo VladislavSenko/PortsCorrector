@@ -6,5 +6,7 @@
         public string PortName { get; set; }
         public string PortCode { get; set; }
         public bool IsProcessed { get; set; }
+        public bool IsCorrected { get; set; }
+
     }
 }

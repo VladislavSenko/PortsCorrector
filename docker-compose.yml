@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  portsprocessor:
+    image: portsprocessor
+    environment:
+      - DOTNET_ENVIRONMENT=Production
+
+    build:
+      context: .
+      dockerfile: Dockerfile
